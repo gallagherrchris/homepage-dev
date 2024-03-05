@@ -43,7 +43,7 @@ function handleServiceProviders(services) {
         if (!providerValues[overrideKey]) {
           return overrideResults;
         }
-        return { ...overrideResults, [overrideKey]:providerValues[overrideKey]};
+        return { ...overrideResults, [overrideKey]: providerValues[overrideKey]};
       }, {});
       return {
         ...service,
@@ -108,6 +108,7 @@ export async function servicesFromConfig() {
   const services = yaml.load(fileContents);
   return parseServicesToGroups(services);
 }
+
 
 export async function servicesFromDocker() {
   checkAndCopyConfig("docker.yaml");
