@@ -10,6 +10,7 @@ import checkAndCopyConfig, { CONF_DIR, getSettings, substituteEnvironmentVars } 
 import getDockerArguments from "utils/config/docker";
 import getKubeConfig from "utils/config/kubernetes";
 import * as shvl from "utils/config/shvl";
+import widgets from "widgets/widgets";
 
 const logger = createLogger("service-helpers");
 
@@ -25,8 +26,10 @@ export async function servicesFromConfig() {
     return [];
   }
 
+  const { providers } = getSettings();
+
   // map easy to write YAML objects into easy to consume JS arrays
-  const servicesArray = services.map((servicesGroup) => ({
+  let servicesArray = services.map((servicesGroup) => ({
     name: Object.keys(servicesGroup)[0],
     services: servicesGroup[Object.keys(servicesGroup)[0]].map((entries) => ({
       name: Object.keys(entries)[0],
@@ -34,6 +37,54 @@ export async function servicesFromConfig() {
       type: "service",
     })),
   }));
+
+  servicesArray = servicesArray.map((servicesGroup) => {
+    const groupedServices = servicesGroup.services.map((service) => {
+      if (!service.widget || !service.widget.provider) {
+        return service;
+      }
+      if (!providers[service.widget.provider]) {
+        // TODO throw error unable to find provider
+        logger.error(`No provider found for service '${service.name}'.`);
+        return service;
+      }
+      const widget = widgets[service.widget.type];
+      if (!widget) {
+        logger.error(`Unknown widget type '${service.widget.type}'. Unable to map provider value(s).`);
+        return service;
+      }
+      if (!widget.providerOverrides) {
+        logger.error(`No providerOverrides configured for ${service.widget.type}.`);
+        return service;
+      }
+      const { providerOverrides } = widget;
+      const providerValues = providers[service.widget.provider];
+      if (typeof providerValues === "object") {
+        // TODO provide all override keys on widget
+        if (!providerOverrides.every((val) => Object.keys(providerValues).includes(val))) {
+          logger.error(`Missing some required provider values for '${service.name}'. Required values: ${providerOverrides}.`);
+          return service;
+        }
+
+        return {
+          ...service,
+          widget: { ...service.widget, ...providerValues}
+        };
+      }
+      // TODO check if only one key in provider array
+      if (providerOverrides.length !== 1) {
+        logger.error(
+          `Multiple potential provideOverrides, but only one value supplied for '${service.name}'.`,
+        );
+        return service;
+      }
+      return {
+        ...service,
+        widget: { ...service.widget, [providerOverrides[0]]: providerValues },
+      };
+    });
+    return { ...servicesGroup, services: groupedServices };
+  });
 
   // add default weight to services based on their position in the configuration
   servicesArray.forEach((group, groupIndex) => {
