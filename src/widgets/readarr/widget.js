@@ -4,6 +4,7 @@ import { jsonArrayFilter } from "utils/proxy/api-helpers";
 const widget = {
   api: "{url}/api/v1/{endpoint}?apikey={key}",
   proxyHandler: genericProxyHandler,
+  providerOverrides: ["key"],
 
   mappings: {
     book: {
