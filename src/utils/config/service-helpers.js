@@ -29,6 +29,9 @@ function handleServiceProviders(services) {
       logger.error(`Unknown widget type '${service.widget.type}'. Unable to map provider value(s).`);
       return service;
     }
+
+    // TODO: If there is a single provided settings value, assume it is "key"
+    // This allows for less overrides on widget definition
     if (!widget.providerOverrides) {
       logger.error(`No providerOverrides configured for ${service.widget.type}.`);
       return service;
