@@ -664,8 +664,8 @@ export async function getServiceItem(group, service) {
 export default async function getServiceWidget(group, service, index) {
   const serviceItem = await getServiceItem(group, service);
   if (serviceItem) {
-    const { widget, widgets } = serviceItem;
-    return index > -1 && widgets ? widgets[index] : widget;
+    const { widget, widgets: serviceWidgets } = serviceItem;
+    return index > -1 && serviceWidgets ? serviceWidgets[index] : widget;
   }
   return false;
 }
