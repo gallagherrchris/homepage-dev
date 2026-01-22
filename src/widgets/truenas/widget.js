@@ -6,6 +6,7 @@ const widget = {
   api: "{url}/api/v2.0/{endpoint}",
   wsAPI: "{url}/api/current",
   proxyHandler: truenasProxyHandler,
+  providerOverrides: ["username", "password", "key"],
 
   mappings: {
     alerts: {

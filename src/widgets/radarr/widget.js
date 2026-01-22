@@ -4,6 +4,7 @@ import genericProxyHandler from "utils/proxy/handlers/generic";
 const widget = {
   api: "{url}/api/v3/{endpoint}?apikey={key}",
   proxyHandler: genericProxyHandler,
+  providerOverrides: ["key"],
 
   mappings: {
     movie: {
